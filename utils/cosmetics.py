@@ -32,3 +32,9 @@ def color(text):
             formatted += text[i]
         i += 1
     return formatted + color_dict['&r']
+
+def cprint(text):
+    print(color(text))
+
+def cinput(text):
+    return input(color(text))

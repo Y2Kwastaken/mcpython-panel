@@ -1,21 +1,34 @@
-import subprocess
+import requests
 import os
 import zipfile
 
-INSTALL_SCRIPT = os.getcwd() + "/python_panel/utility_scripts"
-INSTALLS = os.getcwd() + "/python_panel/installs"
-UTILITY_SCRIPTS = os.getcwd() + "/python_panel/utility_scripts"
+SCRIPTS = os.getcwd() + "/scripts"
+INSTALLS = os.getcwd() + "/installs"
+SERVERS = os.getcwd() + "/servers"
 
-def download(link):
+def download(link, name=None, return_json=False, no_download=False):
     '''
     Downloads a file form the internet using the basic-installer.sh script
     More details about this script in the file itself
     '''
-    wd = chdir(INSTALL_SCRIPT)
-    subprocess.call([f'./basic-installer.sh', link])
-    os.chdir(wd)
 
-def chdir(dir, credir=True):
+    wd = chdir(INSTALLS)
+    data = requests.get(link)
+
+    if not no_download:
+        if name == None:
+            name = link.split('/')[-1] 
+        
+        with open(name, 'wb') as f:
+            f.write(data.content)
+        os.chdir(wd)
+
+    if return_json:
+        return data.status_code, data.json()
+    return data.status_code
+
+
+def chdir(dir):
     '''
     A better version of os.chdir
     '''
@@ -34,3 +47,14 @@ def unzip(path, file_name, dest=None):
             zip_ref.extractall(path)   
         else:
             zip_ref.extractall(dest) 
+
+
+def getserver(servertype):
+    wd = chdir(INSTALLS)
+
+    for file in os.listdir():
+        if servertype in file:
+           os.chdir(wd)
+           return os.path.basename(file)
+    
+    os.chdir(wd)
