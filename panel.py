@@ -9,7 +9,7 @@ def main():
 def panel():
 
     commands()
-    
+    # Loops Through Options
     while 1:
         user_input = cinput("&7Choose an option from above: ")
         if user_input == "setup":
