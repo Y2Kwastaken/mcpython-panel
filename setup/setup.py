@@ -7,21 +7,11 @@ import shutil
 
 
 def hub():
-    cprint('''
-    &b
-     ____       _               
-    / ___|  ___| |_ _   _ _ __  
-    \___ \ / _ \ __| | | | '_ \ 
-     ___) |  __/ |_| |_| | |_) |
-    |____/ \___|\__|\__,_| .__/ 
-                         |_|   
-    ''')
-    
     commands()
 
-    running = False
+    running = True
 
-    while not running:
+    while running:
         user_input = cinput("&7Choose an option from above: ")
 
         if user_input == "create server":
@@ -30,7 +20,7 @@ def hub():
         elif user_input == "help":
             commands()
         elif user_input == "exit":
-            return True
+            return False
         else:
             cprint("&cThat wasn't a valid option try again")
 
@@ -71,11 +61,18 @@ def create_server():
     
     # java -Xms2G -Xmx2G -jar paper.jar --nogui
     with open(servername+"/start.sh", "w") as f:
-        f.write(f'java -jar -Xms{minram}M -Xmx{maxram}M -jar server.jar --nogui')
+        f.write('#! /bin/sh\n')
+        f.write(f'java -jar -Xms{minram}M -Xmx{maxram}M -jar server.jar')
+        if servertype == "paper":
+            f.write(" --nogui")
         f.close() 
     
     with open(servername+"/eula.txt", "w") as f:
         f.write("eula=true")
+    
+    with open(servername+"/info.txt", "w") as f:
+        f.write("type="+servertype+"\n")
+        f.write("version="+version+"\n")
 
     subprocess.call(['chmod', '+x', f'{servername}/start.sh'])
     os.chdir(wd)
@@ -85,9 +82,21 @@ def commands():
     '''
     Commands displayed
     '''
+
+    cprint('''
+    &b
+     ____       _               
+    / ___|  ___| |_ _   _ _ __  
+    \___ \ / _ \ __| | | | '_ \ 
+     ___) |  __/ |_| |_| | |_) |
+    |____/ \___|\__|\__,_| .__/ 
+                         |_|   
+    ''')
+    
     cprint('''
     &6Setup Commmands
     &8---------------------------------------
     &ahelp: displays this
     &acreate server: creates a server either paper or spigot
+    &4exit: exits the setup area
     ''')

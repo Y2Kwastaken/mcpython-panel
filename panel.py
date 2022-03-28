@@ -1,5 +1,6 @@
 from utils.cosmetics import cprint, cinput
 from setup import setup
+from servermanager import managerhub
 
 def main():
     running = True
@@ -14,6 +15,9 @@ def panel():
         user_input = cinput("&7Choose an option from above: ")
         if user_input == "setup":
             setup.hub()
+            commands()
+        elif user_input == "manager":
+            managerhub.hub()
             commands()
         elif user_input == "refresh":
             return True
@@ -44,10 +48,11 @@ def commands():
     cprint('''
     &6Panel Commands
     &8----------------------------
-    &asetup: brings you to an area for general setup
+    &asetup: brings you to an area for general setupay 
+    &amanager: an area for managing your servers
     &ahelp: displays this
     &crefresh: refreses the panel
     &4exit: exits the panel instance
     ''')
 
-main()
+main()  
