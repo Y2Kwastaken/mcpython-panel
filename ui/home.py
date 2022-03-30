@@ -1,4 +1,3 @@
-from internals.server_installer import create_server
 from utils.cosmetics import cfiglet, cinput, cprint
 from ui.server_manager import server_manager
 from ui.create import create
