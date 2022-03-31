@@ -23,6 +23,7 @@ def color(text):
     '''
     Translates the color codes in text to teh color codes in colors
     '''
+    text = text.replace("§", "&")
     formatted = ""
     i = 0
     while i in range(0, len(text)):
@@ -43,4 +44,7 @@ def cprint(text):
     print(color(text))
 
 def cinput(text):
-    return input(color(text))
+    try:
+        return input(color(str(text)))
+    except KeyboardInterrupt:
+        return str("None")

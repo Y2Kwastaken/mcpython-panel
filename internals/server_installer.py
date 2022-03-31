@@ -1,142 +1,128 @@
-from xmlrpc import server
+from http import server
+from internals.error_manager import BuildToolsException, FileInstallException, InvalidVersionException, Panel_Feedback
 from utils.cosmetics import cprint, cinput, cfiglet
 import utils.file_utils as fu
 import utils.utils as utils
 import os
 import subprocess
 import shutil
-import traceback as tb
 
 BUILDTOOLS_PATH = "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
 PAPER_V2_API_VERSION = "https://papermc.io/api/v2/projects/{project}/versions/{version}"
 PAPER_V2_API = "https://papermc.io/api/v2/projects/{project}/versions/{version}/builds/{build}/downloads/{download}"
 BUNGEE_LATEST = "https://ci.md-5.net/job/BungeeCord/lastSuccessfulBuild/artifact/bootstrap/target/BungeeCord.jar"
-BUNGEE_BUILD = "https://ci.md-5.net/job/BungeeCord/{build}/artifact/bootstrap/target/BungeeCord.jar"
 
+BUILDTOOLS_SUCCESS ="Success!"
 
-def papermc_api(project: str, version: str):
-    response_code, json_response = fu.download(PAPER_V2_API_VERSION.format(project=project, version=version), return_json=True, no_download=True)
+spigot_provider_dict = {
+    "Spigot": BUILDTOOLS_PATH,
+    "BungeeCord": BUNGEE_LATEST,
+}
 
-    if response_code == 404:
-        cprint("&cAn error occured when installing please try again later")
-        return
+def papermc_api(project: str, feedback: Panel_Feedback=None):
+    project = project.lower()
+    version = cinput("&cInput a version: ")
     
-    build = str(json_response["builds"][len(json_response["builds"])-1])
+    try:
+        _, json_response = fu.download(PAPER_V2_API_VERSION.format(project=project, version=version), return_json=True, no_download=True)
+        
+        build = str(json_response["builds"][len(json_response["builds"])-1])
 
-    download_url = PAPER_V2_API.format(project=project, version=version, build=build, download=project+"-"+version+"-"+build+".jar")
-    
-    cprint("&aBeginning install of &b"+download_url)
-    response_code = fu.download(download_url)
+        download_url = PAPER_V2_API.format(project=project, version=version, build=build, download=project+"-"+version+"-"+build+".jar")
+        
+        cprint("&aBeginning install of &b"+download_url)
+        fu.download(download_url)
 
-    if response_code == 404:
-        cprint("&4An Error Occurred while installing your server please try again")
-        return False
-    else:
-        cprint("&aSuccessfully installed your server")
-
-
-def spigot(version):
-    '''
-    Runs spigots build tools and downloads it if it doesn't exist already
-    '''
-    wd = fu.chdir(fu.INSTALLS)
-    # Installs BuildTools.jar if it doesn't exist
-    if not os.path.isfile(os.getcwd() + "/BuildTools.jar"):
-        fu.download(BUILDTOOLS_PATH)
-    
-    if os.path.isfile(fu.INSTALLS + f'/spigot-{version}.jar'):
-        cprint("&a Found Server Version: " + f'spigot-{version}.jar')
-    else:
-        subprocess.call(['java', '-jar', 'BuildTools.jar', f'--rev', f'{version}'])
-        cprint("&aFinished installing the spigot server for the version " + str(version))
-    os.chdir(wd)            
+        basic_setup(project, version)
+    except FileInstallException as fie:
+        if feedback != None:
+            feedback.print_stack_trace(fie)
 
 
-def bungee(build: str):
-    '''
-    Installs a build of bungee
-    '''
-    if build.lower() != "latest":
-        fu.download(BUNGEE_BUILD.format(build=build))
-        return
-    fu.download(BUNGEE_LATEST)
+def spigot_provider(project: str, feedback: Panel_Feedback=None):
+
+    try:
+        cprint("&3Installing: "+project)
+        link = spigot_provider_dict[project]
+        fu.download(link)
+
+        eula=False
+        version="latest"
+        if project == "Spigot":
+            eula=True
+            version = cinput("&cInput a version: ")
+
+            wd = fu.chdir(fu.INSTALLS)
+            subprocess.call(['java', '-jar', 'BuildTools.jar', f'--rev', f'{version}'])
+
+            last_lines = fu.lastlines("BuildTools.log.txt", 10)
+            build_success = False
+            for line in last_lines:
+                if BUILDTOOLS_SUCCESS in line:
+                    build_success = True
+                    break
+            
+            if not build_success:
+                raise BuildToolsException(last_lines)
+            
+                
+            os.chdir(wd)
+        
+        basic_setup(project, version, eula=eula)
+    except (KeyError, FileInstallException, InvalidVersionException, BuildToolsException) as ke:
+        if feedback != None:
+            feedback.print_stack_trace(ke)
+
+
+
 
 
 create_server_choices = {
     '1': ['Paper', papermc_api],
-    '2': ['Spigot', spigot],
-    '3': ['Bungee', bungee],
+    '2': ['Spigot', spigot_provider],
+    '3': ['BungeeCord', spigot_provider],
     '4': ['Waterfall', papermc_api],
+    '5': ['Exit', False],
 }
 
-def create_server():
+def create_server(feedback: Panel_Feedback):
     '''
     Runs Throguh Creating a server
     '''
     running = True
     while running:
-        os.system("clear")
+        feedback.clear()
         cfiglet('&5', "Server Creator")
         
         utils.print_arguments(create_server_choices)
-
         options = cinput("&2Choose an option: ")
         
         try:
+            
             type = create_server_choices[options][0]
-            print(type)
-            if type == "Bungee" or type == "Waterfall":
-                proxy_setup(create_server_choices[options][1], type)
-            else:
-                version = cinput("&cInput a version: ")
-                server_setup(create_server_choices[options][1], type, version)
-        except:
-            #Uncomment below for debug
-            #tb.print_exc()
-            #utils.stall()
-            running = False
 
+            if type == "Exit":
+                running = False
+                return
 
-def proxy_setup(download, proxytype: str):
-    version = "unkown"
-    if proxytype.lower() == "bungee":
-        cprint("&cWarning a build is not the same as a version\nto see all bungee builds go to the link below\nhttps://ci.md-5.net/job/BungeeCord/")
-        cprint("input latest to get the latest build")
-        build = cinput("&cInput a build: ")
-        bungee(build)
-    elif proxytype.lower() == "waterfall":
-        cprint("&cWarning while you may beable to get older versions of waterfall upto 1.11")
-        cprint("&cI caution you to always get the latest version. proxies support multiple minecraft versions")
-        version = cinput("&cInput a version: ")
-        papermc_api("waterfall", version)
-    else:
-        cprint("&cThat proxytype does not exist")
-        utils.stall()
-        return
-    
-    basic_setup(proxytype, version, eula=False)
+            create_server_choices[options][1](create_server_choices[options][0], feedback)
+        except KeyError as ke:
+            feedback.print_stack_trace(ke)
 
+        feedback.clear()
 
-def server_setup(download, servertype: str, version: str):
-
-    if servertype.lower() == "spigot":
-       download(version)
-    elif servertype.lower() == "paper":
-        download(servertype.lower(), version)
-    else:
-        cprint("&cThat servertype does not exist")
-        utils.stall()
-        return
-    basic_setup(servertype, version)
 
 
 def basic_setup(servertype: str, version: str, eula=True):
     servername = cinput("&3What do you want to name the server: ")
     
     wd = fu.chdir(fu.SERVERS)
-    os.mkdir(servername)
+    
+    if not os.path.exists(servername):
+        os.mkdir(servername)
     
     server = fu.getserver(servertype.lower())
+    print(server)
     shutil.move(fu.INSTALLS + "/" + server, fu.SERVERS + "/"+servername+"/"+"server.jar")
 
     minram = cinput("&7What is the minimum amount of ram (for this server) in megabytes: ")

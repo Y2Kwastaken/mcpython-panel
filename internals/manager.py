@@ -1,3 +1,4 @@
+from internals.error_manager import Panel_Feedback
 from utils.cosmetics import cinput, cprint, cfiglet
 from utils.killable_thread import thread_with_trace
 import utils.file_utils as fu
@@ -7,33 +8,50 @@ import time
 import os
 import re
     
+proxies = ['BungeeCord', 'Waterfall']
+
 class Manager:
 
-    def __init__(self, server_name):
-        self.server_name = server_name
-        self.choices = {
+    def __init__(self, server_name: str, feedback: Panel_Feedback):
+        self.server_name: str = server_name
+        self.feedback: Panel_Feedback = feedback
+        self.choices: dict = {
             '1': ["Start", self.start_server],
             '2': ["Stop", self.stop_server],
-            '3': ["Information", self.server_information],
-            '4': ["View", self.view_server]
+            '3': ["Restart", self.restart_server],
+            '4': ["Information", self.server_information],
+            '5': ["View", self.view_server],
+            '6': ["Exit", False],
         }
+        self.info = {}
+        with open(fu.SERVERS+f'/{self.server_name}/info.txt', 'r') as f:
+            for line in f.readlines():
+                larr = line.split("=")
+                self.info[larr[0]] = larr[1].replace("\n", "")
+
     
     def hub(self):
-        os.system("clear")
-
+        
         running = True
         while running:
+            self.feedback.clear()
             cfiglet('&5', self.server_name)
             utils.print_arguments(self.choices)
             
             option = cinput("&2Choose an option: ")
 
             try:
+                action_name = self.choices[option][0]
+
+                if action_name == "Exit":
+                    running = False
+                    return
+
                 self.choices[option][1]()
-                utils.stall()
-            except Exception:
-                running = False
-            os.system("clear")
+                self.feedback.pause_panel()
+            except KeyError as ke:
+                self.feedback.print_stack_trace(ke)
+            self.feedback.clear()
     
     
     def server_running(self):
@@ -68,6 +86,7 @@ class Manager:
         os.system(f'screen -S {self.server_name} -d -m ./start.sh')
         
         os.chdir(wd)
+        cprint("&aStarted The Server")
     
 
     def stop_server(self):
@@ -91,11 +110,19 @@ class Manager:
             os.chdir(wd)
     
 
+    def restart_server(self):
+        if self.server_running():
+            self.stop_server()
+            time.sleep(5)
+            self.start_server()
+        else:
+            self.start_server()
+
+
     def server_information(self):
         
-        with open(fu.SERVERS+f'/{self.server_name}/info.txt', 'r') as f:
-            for line in f.readlines():
-                cprint("&e"+line.replace("\n", ""))
+        for k in self.info:
+            cprint("&e"+k+"="+self.info[k])
         cprint("&erunning="+str(self.server_running()))
 
     def view_server(self):
@@ -126,7 +153,12 @@ class Manager:
         '''
         generator function that yields new lines in a file
         '''        
-        with open(f'{fu.SERVERS}/{self.server_name}/logs/latest.log') as l:
+        relative_log_location = "logs/latest.log"
+        
+        if self.info['type'] in proxies:
+            relative_log_location = "proxy.log.0"
+
+        with open(f'{fu.SERVERS}/{self.server_name}/{relative_log_location}') as l:
 
             # seek the end of the file
             l.seek(0, os.SEEK_END)

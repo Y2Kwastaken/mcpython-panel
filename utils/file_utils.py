@@ -2,6 +2,8 @@ import requests
 import os
 import zipfile
 
+from internals.error_manager import FileInstallException
+
 SCRIPTS = os.getcwd() + "/scripts"
 INSTALLS = os.getcwd() + "/installs"
 SERVERS = os.getcwd() + "/servers"
@@ -23,8 +25,12 @@ def download(link, name=None, return_json=False, no_download=False):
             f.write(data.content)
         os.chdir(wd)
 
+    if data.status_code == 404:
+        raise FileInstallException(link, data.status_code, data.reason)
+
     if return_json:
         return data.status_code, data.json()
+    
     return data.status_code
 
 
@@ -53,8 +59,28 @@ def getserver(servertype):
     wd = chdir(INSTALLS)
 
     for file in os.listdir():
-        if servertype in file:
+        if servertype.lower() in file.lower():
            os.chdir(wd)
            return os.path.basename(file)
     
     os.chdir(wd)
+
+
+def lastlines(fname, N):
+    assert N >= 0
+    pos = N + 1
+    lines = []
+    with open(fname) as f:
+        # loop which runs
+        # until size of list
+        # becomes equal to N
+        while len(lines) <= N:
+            try:
+                f.seek(-pos, 2)
+            except IOError:
+                f.seek(0)
+                break
+            finally:
+                lines = list(f)
+            pos *= 2
+    return lines[-N:]

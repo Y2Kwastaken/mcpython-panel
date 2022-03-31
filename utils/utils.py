@@ -48,10 +48,3 @@ def get_all_servers():
         if os.path.isdir(fu.SERVERS+"/"+dir):
             dirs.append(dir)
     return dirs
-
-
-def stall():
-    '''
-    stalls until enter
-    '''
-    input("Press Enter To Continue...")

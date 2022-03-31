@@ -1,8 +1,6 @@
-from http import HTTPStatus, server
-from re import L
 from utils.cosmetics import cprint
-from utils.file_utils import download
 import traceback as tback
+import os
 
 class Panel_Feedback:
 
@@ -18,57 +16,49 @@ class Panel_Feedback:
         self.pause = pause
     
 
-    def print_stack_trace(self, exception: Exception, limited: bool=False):
-        if not limited:
+    def print_stack_trace(self, exception: Exception):
+        if not self.feedback:
+            return
+
+        if self.debugmode:
+            self.clear()
             cprint("&4ERROR OCCURED")
             cprint("&4-------------------------")
-            cprint('&4'+tback.extract_stack)
+            tback.print_exc()
             cprint("&4-------------------------")
         else:
-            cprint("&4ERROR OCCURED")
-            cprint("&4Cuase: "+exception.__cause__)
+            cprint("&4"+str(type(exception).__name__))
+            cprint("&4"+str(exception.args))
         self.pause_panel()
 
 
     def pause_panel(self):
         if self.pause:
             input("Press Enter To Continue...")
-    
 
-    def check_version(self, servertype: str, version: str):
-        servertype=servertype.lower()
-        '''
-        Precondition: servertype must be valid
-        '''
-        if servertype in self.SERVERTYPES['spigot-domain']:
-            if servertype == "bungee":
-                '''do stuff'''
-            else:
-                '''get versions'''
-        elif servertype in self.SERVERTYPES['papermc-domain']:
-            '''
-            Get Valid Project Versions
-            '''
-            response_code, json_response = download(self.PAPER_API.format(project=servertype))
 
-            if response_code == 404:
-                raise HTTPNotFound
-            
-            if version not in json_response['versions']:
-                raise InvalidVersionException
-            
+    def clear(self):
+        # Time differential on tests
+        #os.system("clear") -> 0.0015304088592529297
+        #print(\033c) -> 3.075599670410156e-05
+        # Using a faster method leads to smoother and quick transitions from panel screen
+        print("\033c")
 
 
 class InvalidVersionException(Exception):
 
     def __init__(self, servertype, version):
-        self.servertype = servertype
-        self.version = version
         self.message = f'There is no version: {version} for servertype: {servertype}'
         super().__init__(self.message)
 
 
-class HTTPNotFound(Exception):
-    
-    def __init__(self):
-        super().__init__("404 Error Request Not Found")
+class FileInstallException(Exception):
+
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+
+class BuildToolsException(Exception):
+
+    def __init__(self, error):
+        super().__init__(error)
