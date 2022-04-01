@@ -1,1 +1,3 @@
-Some Markdown text with <span style="color:blue">some *blue* text</span>.
+### Minecraft Panel
+# Setup and run minecraft server's easily
+
