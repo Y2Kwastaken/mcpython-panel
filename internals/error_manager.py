@@ -8,7 +8,7 @@ class Panel_Feedback:
         'spigot-domain': ['spigot', 'bungee'],
         'papermc-domain': ['paper', 'waterfall'],
     }
-    PAPER_API = "https://papermc.io/api/v2/projects/{project}"
+
 
     def __init__(self, debugmode, feedback, pause):
         self.debugmode = debugmode

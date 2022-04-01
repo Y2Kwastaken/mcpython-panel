@@ -3,33 +3,26 @@ from utils.cosmetics import cfiglet, cinput, cprint
 from ui.server_manager import server_manager
 from ui.create import create
 import utils.utils as utils
-import sys
-import os
+import subprocess
+
+panel_feedback = Panel_Feedback(debugmode=True, feedback=True, pause=True)
 
 
-feedback = Panel_Feedback(debugmode=True, feedback=True, pause=True)
+def enter_firewall(feedback: Panel_Feedback):
+    # Subprocess spawn prevents sudo from being needed to run entire panel
+    # Panel having sudo could cause security issues and permission issues down the line
+    subprocess.call(['sudo', '-E', 'python3', 'scripts/firewall.py'])
+
 
 home_choices = {
     '1': ["Server Manager: ", server_manager],
     '2': ["Creation Tools: ", create],
-    '3': ["Exit", sys.exit],
+    '3': ["Firewall Gateway", enter_firewall],
+    '4': ["Exit", False],
 }
 
 def home():    
-    running = True
-
-    while running:
-        feedback.clear()
-        
-        cfiglet('&5', "Minecraft Panel")
-        cprint("&fGithub Repository: &3https://github.com/Y2Kwastaken/python-panel")
-        # Prints All The Arguments
-        utils.print_arguments(home_choices)
-
-        option = cinput("&2Choose an option: ")
-        try:
-            home_choices[option][1](feedback)
-        except KeyError as ke:
-            feedback.print_stack_trace(ke)
-        
-        feedback.clear()
+    fcol: str = "&5"
+    ftext: str = "Minecraft Panel"
+    foot: str = "&fRepository: https://github.com/Y2Kwastaken/mcpython-panel"
+    utils.create_user_interface(home_choices, panel_feedback, ftext, fcol, foot, panel_feedback)

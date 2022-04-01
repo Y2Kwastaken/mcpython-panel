@@ -1,32 +1,7 @@
-from re import L
-from utils.cosmetics import cinput, cprint
+from internals.error_manager import Panel_Feedback
+from utils.cosmetics import cfiglet, cinput, cprint
 import utils.file_utils as fu
 import os
-import time
-import subprocess
-
-def follow(server_name, log="latest.log"):
-    '''generator function that yields new lines in a file
-    '''
-
-    with open(f'{fu.SERVERS}/{server_name}/logs/{log}') as l:
-
-        # seek the end of the file
-        l.seek(0, os.SEEK_END)
-        
-        # start infinite loop
-        while True:
-            # read last line of file
-            line = l.readline()        # sleep if file hasn't been updated
-            if not line:
-                time.sleep(0.1)
-                continue
-
-            cprint(line.replace("\n", ""))
-
-def server_input(user_input, server_name):
-    subprocess.call(['screen', '-S', f'{server_name}', '-X', 'stuff', f'{user_input}\015'])
-
 
 def print_arguments(dict: dict, index=0):
     '''
@@ -42,9 +17,42 @@ def print_arguments(dict: dict, index=0):
 def get_all_servers():
     '''
     Returns a list of all servers
+    This assumes all folders are a server
     '''
     dirs = []
     for dir in os.listdir(fu.SERVERS):
         if os.path.isdir(fu.SERVERS+"/"+dir):
             dirs.append(dir)
     return dirs
+    
+
+def create_user_interface(choices: dict, feedback: Panel_Feedback, figlet_text: str="Sample", figlet_color: str="&6", footer=None, *args):
+    # Creates Loop that can be deactived to terminate the interface
+    running = True
+
+    while running:
+        # Clears the screen see method for preformance benefits
+        feedback.clear()
+        
+        # Spinning up figlet and print footer if there is one
+        cfiglet(figlet_color, figlet_text)
+        if footer != None:
+            cprint(footer)
+
+        # Prints All Arguments
+        print_arguments(choices)
+
+        option = cinput("&2Choose an option: ")
+        # Try Except catches all errors and displays them in a readable fassion
+        try:
+            action_name = choices[option][0]
+
+            if action_name == "Exit":
+                running = False
+                return
+            
+            choices[option][1](*args)
+        except Exception as e:
+            feedback.print_stack_trace(e)
+        
+        feedback.clear()
