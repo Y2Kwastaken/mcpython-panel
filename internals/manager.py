@@ -143,11 +143,14 @@ class Manager:
             if user_input == "exit":
                 running = False
             else:
-                utils.server_input(user_input, self.server_name)
+                self.server_input(user_input)
 
         server_view.kill()
         server_view.join(timeout=0.05)
-    
+
+
+    def server_input(self, user_input):
+        subprocess.call(['screen', '-S', f'{self.server_name}', '-X', 'stuff', f'{user_input}\015'])
 
     def follow(self):
         '''
