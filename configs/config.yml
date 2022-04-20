@@ -1,0 +1,10 @@
+downloadloc: /home/miles/Python/MCPythonPanel/downloads
+serverloc: /home/miles/Python/MCPythonPanel/servers
+# Provide a path to the plugin e/g
+# if your plugin has a subfolder called sub and the main file was called runner
+# sub.runner
+# follow this by a dash and the plugins name so your final format is
+# sub.runner-Runner
+plugins:
+ - "example-Example"
+ - "another-Another"
