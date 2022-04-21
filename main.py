@@ -6,7 +6,7 @@ import native_components.server_creator as screator
 import time
 
 choices = {
-    '0': ["Create Server", screator.onCall]
+    '0': ["Server Creator", screator.onCall]
 }
 
 if __name__ == "__main__":
@@ -21,5 +21,5 @@ if __name__ == "__main__":
     end = time.time()*1000
     cprint(f'&aLoaded all plugins in {end-start} miliseconds')
 
-    panel = Panel_Interface(choices, "MCAdminPanel", "&4", "A Minecraft Python Administrator panel")
+    panel = Panel_Interface(choices, "MCAdminPanel", "&4", "A Minecraft Python Administrator panel", "self")
     panel.launch()

@@ -26,6 +26,6 @@ choices = {
     '2': ["Exit", exit]
 }
 
-def onCall():
+def onCall(head_panel: Panel_Interface):
     panel = Panel_Interface(choices, "Another", "&3", "Another Example Panel", "self")
     panel.launch()
