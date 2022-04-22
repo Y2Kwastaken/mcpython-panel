@@ -8,3 +8,6 @@ serverloc: /root/panel-test-code/servers
 plugins:
  - "example-Example"
  - "another-Another"
+
+# Don't add all your servers here just change serverloc
+external_servers:

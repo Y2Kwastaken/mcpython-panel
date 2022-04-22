@@ -2,6 +2,9 @@ from utils.cosmetics import cprint, cfiglet, cinput
 import traceback as tback
 import sys
 
+
+
+
 class Panel_Feedback:
 
     def __init__(self, debugmode, feedback, pause):
@@ -43,20 +46,19 @@ class Panel_Interface():
 
     def __init__(self, choices: dict, figlet: str="Interface", figletColor: str="&6", footnote: str=None, *args):
         self.feedback: Panel_Feedback = Panel_Feedback(True, True, True)
-        self.choices = choices
         self.figlet: str = figlet
         self.figletColor: str = figletColor
         self.footnote: str = footnote
-        self.running = True
         arglist = list(args)
         if("self" in arglist):
             arglist.insert(arglist.index("self"), self)
             arglist.remove("self")
         self.args = tuple(arglist)
+        self.choices = choices
+
 
     def launch(self):
-
-        while self.running:
+        while True:
             self.feedback.clear()
 
             if self.figlet is not None:
@@ -64,7 +66,7 @@ class Panel_Interface():
 
             if self.footnote is not None:
                 cprint(self.footnote)
-            
+                
             self.print_arguments(self.choices)
 
             user_in = cinput(">> ")
@@ -74,6 +76,8 @@ class Panel_Interface():
             except KeyError as ker:
                 if user_in == 'None':
                     sys.exit()
+                if user_in == '\x18':
+                    return
                 self.feedback.print_stack_trace(ker)
 
             self.feedback.clear()
@@ -84,7 +88,7 @@ class Panel_Interface():
         
     def print_arguments(self, index=0):
         for key in self.choices:
-            cprint(f'[{key}]: {self.choices[key][0]}')
+            cprint(f'&a[{key}]: {self.choices[key][0]}')
             
 
 class FileInstallException(Exception):

@@ -30,10 +30,13 @@ def paper_install(feedback: Panel_Feedback):
         feedback.print_stack_trace(fie)
 
 
-def onCall(panel: Panel_Interface):
+def on_call(headPanel: Panel_Interface):
     cfiglet("&5", "Server Creator")
+    cprint("&8Type \"exit\" for Serer Name exit")
     server_name = cinput("&3Server Name >> ")
-    file_path = f'{CONFIG.get("downloadloc")}/{paper_install(panel.feedback)}'
+    if server_name.lower() == "exit":
+        return
+    file_path = f'{CONFIG.get("downloadloc")}/{paper_install(headPanel.feedback)}'
     server_path = f'{CONFIG.get("serverloc")}/{server_name}'
 
     if not os.path.exists(CONFIG.get("serverloc")):
@@ -63,7 +66,7 @@ def onCall(panel: Panel_Interface):
         file.write("view-distance="+view_distance+"\n")
 
     # start script
-    with open(server_path+"/start", "a") as file:
+    with open(server_path+"/start.sh", "a") as file:
         file.write("#!/bin/bash\n")
         simple = bool(cinput("&3Do you want simple setup [true/false] >> "))
         if simple:

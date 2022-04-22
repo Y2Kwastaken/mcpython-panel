@@ -16,16 +16,11 @@ def subtractStuff(panel: Panel_Interface):
     panel.feedback.pause_panel()
 
 
-def exit(panel: Panel_Interface):
-    panel.close()
-
-
 choices = {
     '0': ["Add", addStuff],
     '1': ["Subtract", subtractStuff],
-    '2': ["Exit", exit]
 }
 
-def onCall(head_panel: Panel_Interface):
+def on_call(head_panel: Panel_Interface):
     panel = Panel_Interface(choices, "Example", "&3", "An Example Panel", "self")
     panel.launch()
