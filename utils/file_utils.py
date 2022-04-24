@@ -60,9 +60,11 @@ def gather_plugins() -> list:
     '''
     start = time.time()*1000
     plugins = {}
-    for plugin in CONFIG.get("plugins"):
-        name = plugin.split("-")
-        plugins[name[1]] = name[0] 
+    if CONFIG.get("plugins") != None:
+        for plugin in CONFIG.get("plugins"):
+            name = plugin.split("-")
+            plugins[name[1]] = name[0] 
+    
     end = time.time()*1000
     cprint(f'&aFetched all plugins in {end-start} miliseconds')
     return plugins

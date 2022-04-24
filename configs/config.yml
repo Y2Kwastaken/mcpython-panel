@@ -6,7 +6,6 @@ serverloc: /root/panel-test-code/servers
 # follow this by a dash and the plugins name so your final format is
 # sub.runner-Runner
 plugins:
- - "example-Example"
-
+ - example-Example
 # Don't add all your servers here just change serverloc
 external_servers:

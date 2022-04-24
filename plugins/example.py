@@ -1,26 +1,26 @@
 from utils.panel_utils import Panel_Interface
-from utils.cosmetics import cinput, cprint
+from utils.cosmetics import cprint, cinput
 
 
-def addStuff(panel: Panel_Interface):
-    num1 = cinput("Input the first number you want to add: ")
-    num2 = cinput("Input the second number you want to add: ")
-    cprint(f'The Answer is {int(num1)+int(num2)}')
+def add(panel: Panel_Interface):
+    num1 = cinput("&aInput a number you want to add: ")
+    num2 = cinput("&aInput the number you want to add to the first: ")
+    cprint(f'&6{int(num1)+int(num2)}')
     panel.feedback.pause_panel()
 
 
-def subtractStuff(panel: Panel_Interface):
-    num1 = cinput("Input the first number you want to subtract: ")
-    num2 = cinput("Input the second number you want to subtract: ")
-    cprint(f'The Answer is {int(num1)-int(num2)}')
+def subtract(panel: Panel_Interface):
+    num1 = cinput("&aInput a number you want to subtract: ")
+    num2 = cinput("&aInput the number you want to subtract from the first: ")
+    cprint(f'&6{int(num1)-int(num2)}')
     panel.feedback.pause_panel()
 
 
 choices = {
-    '0': ["Add", addStuff],
-    '1': ["Subtract", subtractStuff],
+    '0': ["Add", add],
+    '1': ["Subtract", subtract],
 }
 
-def on_call(head_panel: Panel_Interface):
-    panel = Panel_Interface(choices, "Example", "&3", "An Example Panel", "self")
+def on_call(headPanel: Panel_Interface):
+    panel = Panel_Interface(choices, "Example", "&6", "An example footnote", "self")
     panel.launch()
