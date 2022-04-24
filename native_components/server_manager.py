@@ -1,18 +1,30 @@
-from asyncio import start_server
-from utils.file_utils import CONFIG, chdir
-from utils.cosmetics import cprint
+from multiprocessing.connection import wait
+import time
+from wsgiref.simple_server import server_version
+from utils.file_utils import CONFIG, RUNNING, chdir, get_screen_pid
+from utils.cosmetics import cprint, cinput
+from utils.killable_thread import thread_with_trace
 from utils.panel_utils import Panel_Interface
-import os
-import shlex
 import subprocess
+import os
+
+proxies = ["Waterfall"]
 
 class ServerPanel():
 
     def __init__(self, path):
         self.path = path
         self.name = os.path.basename(path)
+        if RUNNING.get(self.name) == None:
+            RUNNING.set(self.name, False)
+        RUNNING.save()
+
+        
         self.choices = {
-            '1': ["Start", self.start_server]
+            '1': ["Start", self.start_server],
+            '2': ["Stop", self.stop_server],
+            '3': ["Restart", self.restart_server],
+            '4': ["Console", self.enter_console],
         }
         self.panel = Panel_Interface(self.choices, self.name, "&2")
     
@@ -22,11 +34,84 @@ class ServerPanel():
     
 
     def start_server(self):
-        wd = chdir(self.path)
-        p = subprocess.Popen(['./start.sh'], start_new_session=True)
+        if RUNNING.get(self.name):
+            cprint("&cYou can't start a server that is already running")
+            self.panel.feedback.pause_panel()
+            return
+
+        wd = chdir(self.path) 
+        os.system(f'screen -S {self.name} -d -m ./start.sh')
         os.chdir(wd)
+        cprint("&aServer Started")
+        
+        RUNNING.set(self.name, True)
+        RUNNING.save()
+
+        self.panel.feedback.pause_panel()
+    
+
+    def stop_server(self):
+        if not RUNNING.get(self.name):
+            cprint("&cYou can't stop a server that isn't running")
+            self.panel.feedback.pause_panel()
+            return
+        
+        pid = get_screen_pid(self.name)
+        subprocess.call(['screen', '-XS', f'{pid}', 'quit'])
+        cprint("&4 Stopped the server")     
+        RUNNING.set(self.name, False)
+        RUNNING.save()   
+
         self.panel.feedback.pause_panel()
 
+
+    def restart_server(self):
+        if not RUNNING.get(self.name):
+            self.stop_server()
+            cprint("&cWaiting...")
+            wait(5)
+        self.start_server()
+    
+
+    def enter_console(self):
+        console = thread_with_trace(target=self.follow)
+        console.start()
+
+        running = True
+        while running:
+            user_input = input()
+            if user_input == "\x18":
+                running = False
+            elif user_input == "restart":
+                running = False
+                self.restart_server()
+            elif user_input == "stop":
+                running = False
+                self.stop_server()
+            else:
+                self.server_input(user_input)
+        
+        console.kill()
+        console.join(timeout=0.05)
+
+    def server_input(self, user_input):
+        subprocess.call(['screen', '-S', f'{self.name}', '-X', 'stuff', f'{user_input}\015'])
+
+
+    def follow(self):
+        relative_log_location = "logs/latest.log" 
+        with open(f'{self.path}/{relative_log_location}') as log:
+            log.seek(0, os.SEEK_END)
+
+            while True:
+                line = log.readline()
+                if not line:
+                    time.sleep(0.1)
+                    continue
+                
+                cprint(line.replace("\n", ""))
+
+        
 
 def fetch_servers(choices: dict):
     serverloc = CONFIG.get("serverloc")

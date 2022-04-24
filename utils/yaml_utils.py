@@ -8,18 +8,23 @@ class Yaml():
     
     def __init__(self, path):
         self.path: str = path
-        self.config: yaml._ReadStream = None
+        self.config = None
         
     
     def loadConfig(self):
         with open(self.path, 'r') as file:
             self.config = yaml.safe_load(file)
+            if self.config == None:
+                self.config = {}
     
     def set(self, key, value):
         self.config[key] = value
     
     def get(self, key):
-        return self.config[key]
+        try:
+            return self.config[key]
+        except Exception:
+            return []
 
     def save(self):
         with open(self.path, 'w') as file:

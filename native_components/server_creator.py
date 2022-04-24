@@ -32,7 +32,7 @@ def paper_install(feedback: Panel_Feedback):
 
 def on_call(headPanel: Panel_Interface):
     cfiglet("&5", "Server Creator")
-    cprint("&8Type \"exit\" for Serer Name exit")
+    cprint("&8Type \"exit\" for Server Name exit")
     server_name = cinput("&3Server Name >> ")
     if server_name.lower() == "exit":
         return
@@ -70,11 +70,12 @@ def on_call(headPanel: Panel_Interface):
         file.write("#!/bin/bash\n")
         simple = bool(cinput("&3Do you want simple setup [true/false] >> "))
         if simple:
-            ram = cinput("&3Ram Ammount >> ")
-            file.write(f'java -jar -Xmx{ram} {server_name} --nogui')
+            ram = cinput("&3Ram Ammount (MB) >> ")
+            file.write(f'java -jar -Xmx{ram}M {os.path.basename(file_path)}')
         else:
             startup_arguments = cinput("Start Args >> ")
             file.write(startup_arguments)
+    os.system("chmod +x start.sh")
     
     # spigot.yml
     with open(server_path+"/spigot.yml", "a") as file:

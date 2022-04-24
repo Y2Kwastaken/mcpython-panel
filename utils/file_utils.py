@@ -1,12 +1,17 @@
 import requests
 import time
 import os
+import re
+import subprocess
 from utils.yaml_utils import Yaml
 from utils.cosmetics import cprint
 from utils.panel_utils import FileInstallException
 
 CONFIG = Yaml(os.getcwd() + "/configs/config.yml")
 CONFIG.loadConfig()
+
+RUNNING = Yaml(os.getcwd() + "/configs/running.yml")
+RUNNING.loadConfig()
 
 def download(link, name=None, return_json=False, no_download=False):
     '''
@@ -61,3 +66,14 @@ def gather_plugins() -> list:
     end = time.time()*1000
     cprint(f'&aFetched all plugins in {end-start} miliseconds')
     return plugins
+
+
+def get_screen_pid(name: str):
+    server = subprocess.Popen(['screen', '-ls'], stdout=subprocess.PIPE)
+    stdout, _ = server.communicate()
+    matches = re.search(r'(\d+).%s' % name, stdout.decode("utf-8"), re.MULTILINE)
+    if matches:
+        pids = matches.group()
+        pid = pids.split(".")[0]
+        os.kill(int(pid), 9)
+        subprocess.Popen(['screen', '-wipe'])
