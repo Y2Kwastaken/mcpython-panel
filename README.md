@@ -15,6 +15,6 @@ python -m pip install -r requirements.txt
 
 ### Ubuntu / Debian
 ```
-xargs sudo apt-get install <packages.txt
+xargs sudo apt-get install <packages.txt -y
 python3 -m pip install -r requirements.txt
 ```
