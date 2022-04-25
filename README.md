@@ -4,6 +4,8 @@ Original - https://github.com/Reecepbcups/bash-minecraft-panel
 
 Update to Python - here
 
+Continued production for CraftEconomy's needs - https://github.com/Reecepbcups/minecraft-panel
+
 # Setup
 ### Arch
 ```
