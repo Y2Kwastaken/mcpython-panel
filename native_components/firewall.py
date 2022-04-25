@@ -1,14 +1,10 @@
-from re import L
-import sys
-import os
+from utils.cosmetics import cinput, cprint, cfiglet
+from utils.panel_utils import FileInstallException, Panel_Feedback, Panel_Interface
 import pyufw as ufw
-# Add Panel To Path So Dependencies Can Be Accessed
-sys.path.append(os.getcwd())
-import utils.utils as utils
-from utils.cosmetics import cprint, cinput
-from internals.error_manager import Panel_Feedback
+
 
 feedback: Panel_Feedback = Panel_Feedback(True, True, True)
+
 
 def rules():
     rules = ufw.get_rules()
@@ -37,6 +33,7 @@ def open_port():
             ufw.add(f'allow {port}')
         else:
             ufw.add(f'allow from {where} to any port {port} proto tcp')
+        ufw.add('allow 22')
         ufw.reload()
 
 
@@ -80,10 +77,9 @@ choices = {
     '3': ["Open Port", open_port],
     '4': ["Deny Port", deny_port],
     '5': ["Delete Rule", delete_rule],
-    '6': ["Exit", False],
 }
 
-def start():
-    utils.create_user_interface(choices, feedback, "Firewall", "&4", None)
 
-start()
+def on_call(headPanel: Panel_Interface):
+    panel = Panel_Interface(choices, "Firewall", "&c", "ufw firewall manager")
+    panel.launch()
