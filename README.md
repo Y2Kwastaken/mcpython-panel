@@ -15,6 +15,6 @@ python -m pip install -r requirements.txt
 
 ### Ubuntu / Debian
 ```
-sudo apt install ufw python3-pip sudo
+xargs sudo apt-get install <packages.txt
 python3 -m pip install -r requirements.txt
 ```
